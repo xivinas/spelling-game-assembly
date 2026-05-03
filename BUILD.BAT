@@ -7,6 +7,7 @@ if not exist build mkdir build
 if not exist bin mkdir bin
 
 if "%1"=="test_MAIN" goto TEST_MAIN
+if "%1"=="TEST_ST" goto TEST_ST
 
 REM ============================================
 REM Assemble each module to .OBJ
@@ -49,6 +50,17 @@ if errorlevel 1 goto FAIL
 tlink /v build\TEST_MAIN.OBJ, bin\TEST_MAIN.EXE
 if errorlevel 1 goto FAIL
 echo Build complete: bin\TEST_MAIN.EXE
+goto DONE
+
+:TEST_ST
+echo Building smoke test: STATE
+tasm /zi /isrc tests\TEST_ST.ASM, build\TEST_ST.OBJ
+if errorlevel 1 goto FAIL
+tasm /zi /isrc src\STATE.ASM, build\STATE.OBJ
+if errorlevel 1 goto FAIL
+tlink /v build\TEST_ST.OBJ+build\STATE.OBJ, bin\TEST_ST.EXE
+if errorlevel 1 goto FAIL
+echo Build complete: bin\TEST_ST.EXE
 goto DONE
 
 :FAIL

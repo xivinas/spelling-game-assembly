@@ -7,6 +7,17 @@ description: TASM 5.0 syntax conventions and 8086 real-mode bug patterns for the
 
 This project is **TASM 5.0** (Borland), `.MODEL SMALL`, real-mode 8086. Other dialects (NASM, MASM 6+, GAS) look superficially similar but miscompile or silently produce wrong code. Always apply this skill end-to-end when writing or reviewing assembly.
 
+## DOS 8.3 filename limit — ALWAYS enforce
+
+DOSBox operates inside a DOS environment. All filenames referenced in BUILD.BAT or on the TASM/TLINK command line MUST fit the DOS 8.3 format:
+
+- **Name:** max 8 characters (letters, digits, underscore)
+- **Extension:** max 3 characters
+- **Examples:** `STATE.ASM` ✓, `SHARED.INC` ✓, `test_STATE.asm` ✗ (name is 10 chars)
+- Use short, uppercase names for test files: `TEST_ST.ASM`, `TEST_GFX.ASM`, `TEST_AUD.ASM`
+
+When creating a new `.ASM` file, verify the full filename (including extension) is 8.3-compliant BEFORE writing it. Files with long names will be invisible or garbled inside DOSBox.
+
 ## File skeleton (every module except MAIN)
 
 ```asm

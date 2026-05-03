@@ -26,6 +26,8 @@ bin/      — final .EXE (gitignored)
 docs/     — full design spec, study notes
 ```
 
+**DOS 8.3 filename limit:** All `.ASM` filenames must fit DOS 8.3 (max 8-char name + 3-char extension). Files like `test_STATE.asm` (10 chars) are invisible inside DOSBox. Use short names like `TEST_ST.ASM`, `TEST_GFX.ASM`. Check every new filename before creation.
+
 Build runs **inside DOSBox**, not on the host. Workflow: edit on host → switch to DOSBox → `BUILD.BAT` → `bin\SPELL.EXE` → iterate.
 
 **Claude Code cannot run TASM or DOSBox.** When the user pastes build errors, treat them as ground truth — don't guess at what the assembler "probably" meant.
