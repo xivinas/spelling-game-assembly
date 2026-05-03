@@ -1,11 +1,10 @@
-; MAIN.ASM — Entry point and game loop
-; Day 1: Hello-world skeleton. Expands to full game loop when dependent modules exist.
+; tests/test_MAIN.asm — Smoke test for MAIN module
+; Day 1: Validates the build pipeline with a hello-world.
 
 .MODEL SMALL
 .STACK 1024
 
 .DATA
-    INCLUDE SHARED.INC
     HELLO_MSG DB 'HELLO$'
 
 .CODE

@@ -19,15 +19,30 @@ If a snippet uses `BITS 16`, `section .data`, `global`, or `extern` — it's NAS
 ```
 src/      — module .ASM source
 tests/    — per-module standalone smoke-test mains
+BUILD.BAT — TASM + TLINK pipeline (run from project root)
+CLEAN.BAT — delete build artifacts (run from project root)
 build/    — .OBJ output (gitignored)
 bin/      — final .EXE (gitignored)
 docs/     — full design spec, study notes
-BUILD.BAT — TASM + TLINK pipeline (runs inside DOSBox)
 ```
 
 Build runs **inside DOSBox**, not on the host. Workflow: edit on host → switch to DOSBox → `BUILD.BAT` → `bin\SPELL.EXE` → iterate.
 
 **Claude Code cannot run TASM or DOSBox.** When the user pastes build errors, treat them as ground truth — don't guess at what the assembler "probably" meant.
+
+## Build (inside DOSBox)
+
+```
+BUILD.BAT              → assemble + link all modules → bin\SPELL.EXE
+BUILD.BAT test_GFX     → assemble + link one smoke test → bin\TEST_GFX.EXE
+CLEAN.BAT              → delete build\*.OBJ, bin\*.EXE
+```
+
+BUILD.BAT runs `TASM` for each `.ASM` then `TLINK` to produce the `.EXE`. Smoke tests produce `bin\TEST_<NAME>.EXE` — the naming convention is `tests\test_<MODULE>.asm` → `bin\TEST_<MODULE>.EXE`.
+
+**All TASM calls must include `/isrc`** (no space — TASM 5.0 requires the include path joined to the switch) so `INCLUDE SHARED.INC` resolves. BUILD.BAT and CLEAN.BAT live at the project root (not inside `build/`), and all paths in them are relative to the project root.
+
+When adding a new `.ASM` file, add it to BUILD.BAT's TASM calls **and** TLINK line. When a module is incomplete and its smoke test hasn't passed, do NOT add it to the main `SPELL.EXE` link line.
 
 ## Hard rules (from spec Chapter 6.2 bug list)
 
@@ -57,6 +72,35 @@ Build runs **inside DOSBox**, not on the host. Workflow: edit on host → switch
 
 Detailed per-module specs in `@docs/SPEC.md` chapters 3–5.
 
+## Slash Commands
+
+- **`/module <NAME>`** — Plan-then-execute workflow for a single module (e.g. `/module GFX`). Reads the spec, produces a plan, waits for approval, implements smoke test first, then the module.
+- **`/build-error`** — Paste a TASM/TLINK error after this command. Diagnoses methodically: classify → localize → apply tasm-conventions checklist → propose one concrete fix. No speculative shotgun fixes.
+
+## Available Skills & Subagents
+
+**Skills** (invoked automatically by description match, or explicitly via `/skill-name`):
+
+| Skill | Purpose |
+|---|---|
+| `tasm-conventions` | Auto-applied on any `.ASM` work — TASM syntax, PROC conventions, segment reg rules, bug checklist |
+| `debug-asm` | Trace registers, flags, memory, and DOS interrupt assumptions for a bug |
+| `explain-asm` | Line-by-line explanation of TASM code in register/memory/DOS terms |
+| `implement-asm` | Safe implementation of a TASM routine or program |
+| `review-asm` | Review for correctness, 8086 compatibility, and assignment safety |
+| `create-pr` | Create a pull request |
+
+**Subagents** (use the Agent tool):
+
+| Agent | Purpose |
+|---|---|
+| `code-reviewer-8086` | Reviews 8086/TASM assembly for correctness, DOS interrupts, register safety |
+| `debugger-8086` | Traces registers, flags, memory, and DOS interrupt assumptions |
+| `integration-checker` | Verifies PUBLIC/EXTRN matching, register conventions, segment register handoff across modules. **Run before Day 5 integration.** Reports only — doesn't modify files. |
+| `test-designer-8086` | Designs manual test cases for 8086/TASM programs |
+
+**`integration-checker` is critical.** Run it after editing 2+ modules or before attempting a full build link. Fix all `[BLOCKER]` findings before running BUILD.BAT.
+
 ## Workflow expectations
 
 - **Plan Mode for every module.** Read the relevant spec chapter, propose a plan, get approval, then code. Use `/module <NAME>` to start.
@@ -67,6 +111,8 @@ Detailed per-module specs in `@docs/SPEC.md` chapters 3–5.
 - If debugging, **first explain the likely fault(s)** in terms of registers, memory, flags, or DOS API usage.
 - After writing code, do a static review for 8086/TASM compatibility.
 - End with a compact explanation of the register/data flow.
+
+**PreToolUse guard:** `settings.json` has a hook that runs `.claude/scripts/check_asm_write.py` on every `Edit`/`Write` to an `.ASM` file. It blocks non-8086 instructions (`pushad`, `cmov*`, `enter`, `leave`) and 32-bit registers (`eax`, `ebx`, etc.) before they reach the file. If a write is rejected, the code you tried to write contains a forbidden instruction or register — fix it on your side, don't modify the guard script.
 
 ## Review checklist
 

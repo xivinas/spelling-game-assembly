@@ -1,0 +1,27 @@
+; SHARED.INC — Project-wide constants
+; Included by every .ASM
+
+; --- Game states ---
+STATE_TITLE  EQU 0
+STATE_NAME   EQU 1
+STATE_DIFF   EQU 2
+STATE_INSTR  EQU 3
+STATE_ROUND  EQU 4
+STATE_JUDGE  EQU 5
+STATE_END    EQU 6
+STATE_QUIT   EQU 7
+
+; --- Difficulty tiers ---
+DIFF_EASY    EQU 0
+DIFF_MED     EQU 1
+DIFF_HARD    EQU 2
+
+; --- Game parameters ---
+MAX_HEARTS       EQU 3
+WORDS_PER_TIER   EQU 10
+WORD_RECORD_SIZE EQU 16
+SPRITE_SIZE      EQU 1024    ; 32x32 pixels
+
+; --- Leaderboard ---
+LB_MAX_ENTRIES  EQU 5
+LB_ENTRY_SIZE   EQU 8        ; name(3) + score(2) + difficulty(1) + padding(2)
